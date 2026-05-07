@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clyvo Vet — MER (Modelo Entidade Relacionamento)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+  }
+
+  header {
+    background: #1a1d27;
+    border-bottom: 1px solid #2d3748;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  header h1 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #63b3ed;
+    letter-spacing: 0.5px;
+  }
+
+  header span {
+    font-size: 0.8rem;
+    color: #718096;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    padding: 14px 32px;
+    background: #1a1d27;
+    border-bottom: 1px solid #2d3748;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .toolbar label {
+    font-size: 0.82rem;
+    color: #a0aec0;
+    margin-right: 4px;
+  }
+
+  .toolbar button {
+    background: #2d3748;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .toolbar button:hover { background: #3d4f63; }
+  .toolbar button.primary { background: #2b6cb0; border-color: #3182ce; }
+  .toolbar button.primary:hover { background: #2c5282; }
+
+  .toolbar input[type=range] {
+    width: 120px;
+    accent-color: #63b3ed;
+  }
+
+  #zoom-value {
+    font-size: 0.82rem;
+    color: #a0aec0;
+    min-width: 40px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 24px;
+    margin-left: auto;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-number {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #63b3ed;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.72rem;
+    color: #718096;
+    margin-top: 2px;
+  }
+
+  #diagram-container {
+    padding: 32px;
+    overflow: auto;
+    min-height: calc(100vh - 120px);
+    display: flex;
+    justify-content: center;
+  }
+
+  #diagram-wrapper {
+    transform-origin: top center;
+    transition: transform 0.2s;
+  }
+
+  .mermaid {
+    background: #1a1d27;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #2d3748;
+  }
+
+  .instructions {
+    background: #1a1d27;
+    border: 1px solid #2d3748;
+    border-radius: 8px;
+    padding: 16px 24px;
+    margin: 0 32px 24px;
+    font-size: 0.83rem;
+    color: #a0aec0;
+    line-height: 1.7;
+  }
+
+  .instructions strong { color: #63b3ed; }
+
+  .instructions h3 {
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+
+  .instructions ol { padding-left: 20px; }
+  .instructions code {
+    background: #2d3748;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.82rem;
+    color: #f6ad55;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Clyvo Vet — MER (Modelo Entidade Relacionamento)</h1>
+  <span>Oracle XE / SQL Developer &nbsp;|&nbsp; 21 tabelas &nbsp;|&nbsp; 29 relacionamentos</span>
+</header>
+
+<div class="toolbar">
+  <label>Zoom:</label>
+  <input type="range" id="zoom-slider" min="30" max="200" value="100" oninput="setZoom(this.value)">
+  <span id="zoom-value">100%</span>
+  <button onclick="setZoom(100)">Redefinir</button>
+  <button onclick="setZoom(parseInt(document.getElementById('zoom-slider').value) - 20)">−</button>
+  <button onclick="setZoom(parseInt(document.getElementById('zoom-slider').value) + 20)">+</button>
+  <button class="primary" onclick="window.print()">Imprimir / Salvar PDF</button>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-number">21</div><div class="stat-label">Tabelas</div></div>
+    <div class="stat"><div class="stat-number">21</div><div class="stat-label">Sequences</div></div>
+    <div class="stat"><div class="stat-number">29</div><div class="stat-label">Relacionamentos</div></div>
+    <div class="stat"><div class="stat-number">7</div><div class="stat-label">Procedures</div></div>
+    <div class="stat"><div class="stat-number">4</div><div class="stat-label">Views</div></div>
+  </div>
+</div>
+
+<div class="instructions">
+  <h3>Como gerar o modelo no Oracle Data Modeler</h3>
+  <ol>
+    <li>Abra o <strong>Oracle Data Modeler</strong></li>
+    <li>Vá em <strong>File &gt; Import &gt; DDL File</strong></li>
+    <li>Selecione o arquivo <code>07_ORACLE_MODELER_IMPORT.sql</code></li>
+    <li>Clique em <strong>Generate</strong> — o <strong>Modelo Relacional</strong> será criado automaticamente</li>
+    <li>Para o <strong>Modelo Lógico</strong>: no Navigator, clique com o botão direito em <em>Relational Models</em> &gt; <strong>Engineer to Logical Model</strong></li>
+    <li>Para o <strong>Diagrama Físico (DER)</strong>: abra o modelo relacional e acesse <em>View &gt; Logical Diagram</em></li>
+  </ol>
+</div>
+
+<div id="diagram-container">
+  <div id="diagram-wrapper">
+    <div class="mermaid">
+erDiagram
+
+    tb_log_erros {
+        NUMBER id PK
+        VARCHAR2 nome_procedure
+        VARCHAR2 nome_usuario
+        TIMESTAMP data_erro
+        NUMBER codigo_erro
+        VARCHAR2 mensagem_erro
+    }
+
+    tb_enderecos {
+        NUMBER id PK
+        VARCHAR2 logradouro
+        VARCHAR2 bairro
+        VARCHAR2 cidade
+        VARCHAR2 estado
+        VARCHAR2 cep
+        NUMBER latitude
+        NUMBER longitude
+        TIMESTAMP criado_em
+    }
+
+    tb_usuarios {
+        NUMBER id PK
+        VARCHAR2 nome
+        VARCHAR2 email
+        VARCHAR2 telefone
+        VARCHAR2 senha_hash
+        VARCHAR2 perfil
+        VARCHAR2 idioma
+        NUMBER ativo
+        NUMBER endereco_id FK
+        TIMESTAMP criado_em
+    }
+
+    tb_animais {
+        NUMBER id PK
+        VARCHAR2 nome
+        VARCHAR2 especie
+        VARCHAR2 raca
+        VARCHAR2 sexo
+        DATE data_nascimento
+        NUMBER peso_kg
+        VARCHAR2 codigo_microchip
+        VARCHAR2 modalidade
+        NUMBER ativo
+        TIMESTAMP criado_em
+    }
+
+    tb_donos_animal {
+        NUMBER id PK
+        NUMBER animal_id FK
+        NUMBER usuario_id FK
+        VARCHAR2 papel
+        TIMESTAMP criado_em
+    }
+
+    tb_scores_saude {
+        NUMBER id PK
+        NUMBER animal_id FK
+        NUMBER pontuacao
+        NUMBER pontuacao_nutricao
+        NUMBER pontuacao_atividade
+        NUMBER pontuacao_vacina
+        TIMESTAMP registrado_em
+    }
+
+    tb_carteirinhas {
+        NUMBER id PK
+        NUMBER animal_id FK
+        VARCHAR2 token_qr_code
+        VARCHAR2 numero_registro
+        TIMESTAMP valido_ate
+        NUMBER publico
+    }
+
+    tb_vacinas_carteirinha {
+        NUMBER id PK
+        NUMBER carteirinha_id FK
+        VARCHAR2 nome_vacina
+        VARCHAR2 situacao
+        DATE aplicada_em
+        DATE valida_ate
+    }
+
+    tb_clinicas {
+        NUMBER id PK
+        VARCHAR2 nome
+        NUMBER endereco_id FK
+        VARCHAR2 telefone
+        VARCHAR2 email
+        NUMBER parceira
+        NUMBER atende_domicilio
+        NUMBER aberta_24h
+        NUMBER media_avaliacao
+        NUMBER ativo
+        TIMESTAMP criado_em
+    }
+
+    tb_horarios_clinica {
+        NUMBER id PK
+        NUMBER clinica_id FK
+        NUMBER dia_semana
+        VARCHAR2 abre_as
+        VARCHAR2 fecha_as
+        NUMBER fechado
+    }
+
+    tb_veterinarios {
+        NUMBER id PK
+        NUMBER usuario_id FK
+        VARCHAR2 nome
+        VARCHAR2 crm
+        VARCHAR2 especialidade
+        NUMBER anos_experiencia
+        NUMBER media_avaliacao
+        NUMBER disponivel
+        TIMESTAMP criado_em
+    }
+
+    tb_vet_clinicas {
+        NUMBER id PK
+        NUMBER veterinario_id FK
+        NUMBER clinica_id FK
+        NUMBER principal
+        TIMESTAMP criado_em
+    }
+
+    tb_agendas_vet {
+        NUMBER id PK
+        NUMBER veterinario_id FK
+        NUMBER clinica_id FK
+        NUMBER dia_semana
+        VARCHAR2 hora_inicio
+        VARCHAR2 hora_fim
+        NUMBER duracao_slot_min
+        NUMBER max_slots
+        NUMBER ativo
+    }
+
+    tb_bloqueios_vet {
+        NUMBER id PK
+        NUMBER veterinario_id FK
+        DATE data_bloqueio
+        VARCHAR2 hora_inicio
+        VARCHAR2 hora_fim
+        VARCHAR2 motivo
+    }
+
+    tb_consultas {
+        NUMBER id PK
+        NUMBER animal_id FK
+        NUMBER dono_id FK
+        NUMBER veterinario_id FK
+        NUMBER clinica_id FK
+        VARCHAR2 especialidade
+        DATE data_consulta
+        VARCHAR2 hora_consulta
+        NUMBER duracao_min
+        VARCHAR2 tipo_atendimento
+        VARCHAR2 situacao
+        VARCHAR2 observacoes_dono
+        VARCHAR2 observacoes_vet
+        TIMESTAMP criado_em
+    }
+
+    tb_lembretes_consulta {
+        NUMBER id PK
+        NUMBER consulta_id FK
+        TIMESTAMP lembrar_em
+        VARCHAR2 canal
+        VARCHAR2 situacao
+    }
+
+    tb_eventos_saude {
+        NUMBER id PK
+        NUMBER animal_id FK
+        VARCHAR2 tipo
+        VARCHAR2 nome
+        DATE data_prevista
+        DATE realizado_em
+        VARCHAR2 situacao
+        NUMBER criado_por FK
+        TIMESTAMP criado_em
+    }
+
+    tb_registros_vacina {
+        NUMBER id PK
+        NUMBER animal_id FK
+        NUMBER veterinario_id FK
+        NUMBER clinica_id FK
+        VARCHAR2 nome_vacina
+        VARCHAR2 numero_lote
+        DATE data_aplicacao
+        DATE data_proxima_dose
+    }
+
+    tb_documentos_animal {
+        NUMBER id PK
+        NUMBER animal_id FK
+        VARCHAR2 tipo
+        VARCHAR2 nome
+        VARCHAR2 url_arquivo
+        VARCHAR2 idioma
+        DATE emitido_em
+        NUMBER enviado_por FK
+        TIMESTAMP criado_em
+    }
+
+    tb_notificacoes {
+        NUMBER id PK
+        NUMBER usuario_id FK
+        VARCHAR2 tipo
+        VARCHAR2 titulo
+        VARCHAR2 mensagem
+        NUMBER lido
+        TIMESTAMP criado_em
+    }
+
+    tb_avaliacoes {
+        NUMBER id PK
+        NUMBER avaliador_id FK
+        VARCHAR2 tipo_alvo
+        NUMBER id_alvo
+        NUMBER consulta_id FK
+        NUMBER nota
+        VARCHAR2 comentario
+        TIMESTAMP criado_em
+    }
+
+    %% -------------------------------------------------------
+    %% RELACIONAMENTOS
+    %% Notacao: ||--|| = 1:1  ||--o{ = 1:N(zero+)  ||--|{ = 1:N(um+)
+    %% -------------------------------------------------------
+
+    tb_enderecos    ||--o{  tb_usuarios           : "endereco_id"
+    tb_enderecos    ||--o{  tb_clinicas            : "endereco_id"
+
+    tb_animais      ||--|{  tb_donos_animal        : "animal_id"
+    tb_usuarios     ||--|{  tb_donos_animal        : "usuario_id"
+
+    tb_animais      ||--o{  tb_scores_saude        : "animal_id"
+    tb_animais      ||--||  tb_carteirinhas        : "animal_id"
+    tb_carteirinhas ||--o{  tb_vacinas_carteirinha : "carteirinha_id"
+
+    tb_clinicas     ||--|{  tb_horarios_clinica    : "clinica_id"
+
+    tb_usuarios     ||--||  tb_veterinarios        : "usuario_id"
+    tb_veterinarios ||--|{  tb_vet_clinicas        : "veterinario_id"
+    tb_clinicas     ||--|{  tb_vet_clinicas        : "clinica_id"
+    tb_veterinarios ||--o{  tb_agendas_vet         : "veterinario_id"
+    tb_clinicas     ||--o{  tb_agendas_vet         : "clinica_id"
+    tb_veterinarios ||--o{  tb_bloqueios_vet       : "veterinario_id"
+
+    tb_animais      ||--o{  tb_consultas           : "animal_id"
+    tb_usuarios     ||--o{  tb_consultas           : "dono_id"
+    tb_veterinarios ||--o{  tb_consultas           : "veterinario_id"
+    tb_clinicas     ||--o{  tb_consultas           : "clinica_id"
+    tb_consultas    ||--|{  tb_lembretes_consulta  : "consulta_id"
+
+    tb_animais      ||--o{  tb_eventos_saude       : "animal_id"
+    tb_usuarios     |o--o{  tb_eventos_saude       : "criado_por"
+
+    tb_animais      ||--o{  tb_registros_vacina    : "animal_id"
+    tb_veterinarios |o--o{  tb_registros_vacina    : "veterinario_id"
+    tb_clinicas     |o--o{  tb_registros_vacina    : "clinica_id"
+
+    tb_animais      ||--o{  tb_documentos_animal   : "animal_id"
+    tb_usuarios     |o--o{  tb_documentos_animal   : "enviado_por"
+
+    tb_usuarios     ||--o{  tb_notificacoes        : "usuario_id"
+    tb_usuarios     ||--o{  tb_avaliacoes          : "avaliador_id"
+    tb_consultas    |o--o{  tb_avaliacoes          : "consulta_id"
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    er: {
+      diagramPadding: 30,
+      layoutDirection: 'TB',
+      minEntityWidth: 100,
+      minEntityHeight: 75,
+      entityPadding: 15,
+      useMaxWidth: false
+    },
+    themeVariables: {
+      primaryColor: '#2b6cb0',
+      primaryTextColor: '#e2e8f0',
+      primaryBorderColor: '#4a90d9',
+      lineColor: '#63b3ed',
+      secondaryColor: '#1a1d27',
+      tertiaryColor: '#2d3748',
+      edgeLabelBackground: '#1a1d27',
+      fontFamily: 'Segoe UI, sans-serif',
+      fontSize: '13px'
+    }
+  });
+</script>
+
+<script>
+  function setZoom(v) {
+    v = Math.max(30, Math.min(200, parseInt(v)));
+    document.getElementById('zoom-slider').value = v;
+    document.getElementById('zoom-value').textContent = v + '%';
+    document.getElementById('diagram-wrapper').style.transform = 'scale(' + v/100 + ')';
+  }
+</script>
+
+</body>
+</html>

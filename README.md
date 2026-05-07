@@ -57,6 +57,273 @@ clyvovet-db/
 
 ---
 
+## Diagrama MER
+
+```mermaid
+erDiagram
+
+    tb_log_erros {
+        NUMBER id PK
+        VARCHAR2 nome_procedure
+        VARCHAR2 nome_usuario
+        TIMESTAMP data_erro
+        NUMBER codigo_erro
+        VARCHAR2 mensagem_erro
+    }
+
+    tb_enderecos {
+        NUMBER id PK
+        VARCHAR2 logradouro
+        VARCHAR2 bairro
+        VARCHAR2 cidade
+        VARCHAR2 estado
+        VARCHAR2 cep
+        NUMBER latitude
+        NUMBER longitude
+        TIMESTAMP criado_em
+    }
+
+    tb_usuarios {
+        NUMBER id PK
+        VARCHAR2 nome
+        VARCHAR2 email
+        VARCHAR2 telefone
+        VARCHAR2 senha_hash
+        VARCHAR2 perfil
+        VARCHAR2 idioma
+        NUMBER ativo
+        NUMBER endereco_id FK
+        TIMESTAMP criado_em
+    }
+
+    tb_animais {
+        NUMBER id PK
+        VARCHAR2 nome
+        VARCHAR2 especie
+        VARCHAR2 raca
+        VARCHAR2 sexo
+        DATE data_nascimento
+        NUMBER peso_kg
+        VARCHAR2 codigo_microchip
+        VARCHAR2 modalidade
+        NUMBER ativo
+        TIMESTAMP criado_em
+    }
+
+    tb_donos_animal {
+        NUMBER id PK
+        NUMBER animal_id FK
+        NUMBER usuario_id FK
+        VARCHAR2 papel
+        TIMESTAMP criado_em
+    }
+
+    tb_scores_saude {
+        NUMBER id PK
+        NUMBER animal_id FK
+        NUMBER pontuacao
+        NUMBER pontuacao_nutricao
+        NUMBER pontuacao_atividade
+        NUMBER pontuacao_vacina
+        TIMESTAMP registrado_em
+    }
+
+    tb_carteirinhas {
+        NUMBER id PK
+        NUMBER animal_id FK
+        VARCHAR2 token_qr_code
+        VARCHAR2 numero_registro
+        TIMESTAMP valido_ate
+        NUMBER publico
+    }
+
+    tb_vacinas_carteirinha {
+        NUMBER id PK
+        NUMBER carteirinha_id FK
+        VARCHAR2 nome_vacina
+        VARCHAR2 situacao
+        DATE aplicada_em
+        DATE valida_ate
+    }
+
+    tb_clinicas {
+        NUMBER id PK
+        VARCHAR2 nome
+        NUMBER endereco_id FK
+        VARCHAR2 telefone
+        VARCHAR2 email
+        NUMBER parceira
+        NUMBER atende_domicilio
+        NUMBER aberta_24h
+        NUMBER media_avaliacao
+        NUMBER ativo
+        TIMESTAMP criado_em
+    }
+
+    tb_horarios_clinica {
+        NUMBER id PK
+        NUMBER clinica_id FK
+        NUMBER dia_semana
+        VARCHAR2 abre_as
+        VARCHAR2 fecha_as
+        NUMBER fechado
+    }
+
+    tb_veterinarios {
+        NUMBER id PK
+        NUMBER usuario_id FK
+        VARCHAR2 nome
+        VARCHAR2 crm
+        VARCHAR2 especialidade
+        NUMBER anos_experiencia
+        NUMBER media_avaliacao
+        NUMBER disponivel
+        TIMESTAMP criado_em
+    }
+
+    tb_vet_clinicas {
+        NUMBER id PK
+        NUMBER veterinario_id FK
+        NUMBER clinica_id FK
+        NUMBER principal
+        TIMESTAMP criado_em
+    }
+
+    tb_agendas_vet {
+        NUMBER id PK
+        NUMBER veterinario_id FK
+        NUMBER clinica_id FK
+        NUMBER dia_semana
+        VARCHAR2 hora_inicio
+        VARCHAR2 hora_fim
+        NUMBER duracao_slot_min
+        NUMBER max_slots
+        NUMBER ativo
+    }
+
+    tb_bloqueios_vet {
+        NUMBER id PK
+        NUMBER veterinario_id FK
+        DATE data_bloqueio
+        VARCHAR2 hora_inicio
+        VARCHAR2 hora_fim
+        VARCHAR2 motivo
+    }
+
+    tb_consultas {
+        NUMBER id PK
+        NUMBER animal_id FK
+        NUMBER dono_id FK
+        NUMBER veterinario_id FK
+        NUMBER clinica_id FK
+        VARCHAR2 especialidade
+        DATE data_consulta
+        VARCHAR2 hora_consulta
+        NUMBER duracao_min
+        VARCHAR2 tipo_atendimento
+        VARCHAR2 situacao
+        VARCHAR2 observacoes_dono
+        VARCHAR2 observacoes_vet
+        TIMESTAMP criado_em
+    }
+
+    tb_lembretes_consulta {
+        NUMBER id PK
+        NUMBER consulta_id FK
+        TIMESTAMP lembrar_em
+        VARCHAR2 canal
+        VARCHAR2 situacao
+    }
+
+    tb_eventos_saude {
+        NUMBER id PK
+        NUMBER animal_id FK
+        VARCHAR2 tipo
+        VARCHAR2 nome
+        DATE data_prevista
+        DATE realizado_em
+        VARCHAR2 situacao
+        NUMBER criado_por FK
+        TIMESTAMP criado_em
+    }
+
+    tb_registros_vacina {
+        NUMBER id PK
+        NUMBER animal_id FK
+        NUMBER veterinario_id FK
+        NUMBER clinica_id FK
+        VARCHAR2 nome_vacina
+        VARCHAR2 numero_lote
+        DATE data_aplicacao
+        DATE data_proxima_dose
+    }
+
+    tb_documentos_animal {
+        NUMBER id PK
+        NUMBER animal_id FK
+        VARCHAR2 tipo
+        VARCHAR2 nome
+        VARCHAR2 url_arquivo
+        VARCHAR2 idioma
+        DATE emitido_em
+        NUMBER enviado_por FK
+        TIMESTAMP criado_em
+    }
+
+    tb_notificacoes {
+        NUMBER id PK
+        NUMBER usuario_id FK
+        VARCHAR2 tipo
+        VARCHAR2 titulo
+        VARCHAR2 mensagem
+        NUMBER lido
+        TIMESTAMP criado_em
+    }
+
+    tb_avaliacoes {
+        NUMBER id PK
+        NUMBER avaliador_id FK
+        VARCHAR2 tipo_alvo
+        NUMBER id_alvo
+        NUMBER consulta_id FK
+        NUMBER nota
+        VARCHAR2 comentario
+        TIMESTAMP criado_em
+    }
+
+    tb_enderecos    ||--o{  tb_usuarios           : "endereco_id"
+    tb_enderecos    ||--o{  tb_clinicas            : "endereco_id"
+    tb_animais      ||--|{  tb_donos_animal        : "animal_id"
+    tb_usuarios     ||--|{  tb_donos_animal        : "usuario_id"
+    tb_animais      ||--o{  tb_scores_saude        : "animal_id"
+    tb_animais      ||--||  tb_carteirinhas        : "animal_id"
+    tb_carteirinhas ||--o{  tb_vacinas_carteirinha : "carteirinha_id"
+    tb_clinicas     ||--|{  tb_horarios_clinica    : "clinica_id"
+    tb_usuarios     ||--||  tb_veterinarios        : "usuario_id"
+    tb_veterinarios ||--|{  tb_vet_clinicas        : "veterinario_id"
+    tb_clinicas     ||--|{  tb_vet_clinicas        : "clinica_id"
+    tb_veterinarios ||--o{  tb_agendas_vet         : "veterinario_id"
+    tb_clinicas     ||--o{  tb_agendas_vet         : "clinica_id"
+    tb_veterinarios ||--o{  tb_bloqueios_vet       : "veterinario_id"
+    tb_animais      ||--o{  tb_consultas           : "animal_id"
+    tb_usuarios     ||--o{  tb_consultas           : "dono_id"
+    tb_veterinarios ||--o{  tb_consultas           : "veterinario_id"
+    tb_clinicas     ||--o{  tb_consultas           : "clinica_id"
+    tb_consultas    ||--|{  tb_lembretes_consulta  : "consulta_id"
+    tb_animais      ||--o{  tb_eventos_saude       : "animal_id"
+    tb_usuarios     |o--o{  tb_eventos_saude       : "criado_por"
+    tb_animais      ||--o{  tb_registros_vacina    : "animal_id"
+    tb_veterinarios |o--o{  tb_registros_vacina    : "veterinario_id"
+    tb_clinicas     |o--o{  tb_registros_vacina    : "clinica_id"
+    tb_animais      ||--o{  tb_documentos_animal   : "animal_id"
+    tb_usuarios     |o--o{  tb_documentos_animal   : "enviado_por"
+    tb_usuarios     ||--o{  tb_notificacoes        : "usuario_id"
+    tb_usuarios     ||--o{  tb_avaliacoes          : "avaliador_id"
+    tb_consultas    |o--o{  tb_avaliacoes          : "consulta_id"
+```
+
+---
+
 ## Arquitetura do Banco
 
 O banco está organizado em 8 domínios funcionais com 21 tabelas:
