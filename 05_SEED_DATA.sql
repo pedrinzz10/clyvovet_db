@@ -1,213 +1,210 @@
 -- ============================================================
 -- CLYVO VET -- BANCO DE DADOS ORACLE
 -- Arquivo 05: Seed Data
--- Dados: 4 clinicas, 7 veterinarios, tutor Lucas, animal Bolinha
 -- ============================================================
 
 -- ------------------------------------------------------------
 -- CLINICAS
 -- ------------------------------------------------------------
 BEGIN
-    prc_inserir_clinica('VetCare Prime',     'Av. Paulista, 1000',   'Sao Paulo', 'SP', -23.5640, -46.6529, '(11) 3100-0001', 'contato@vetcareprime.com.br',   1, 1, 0);
-    prc_inserir_clinica('PetMed Centro',     'R. Augusta, 420',      'Sao Paulo', 'SP', -23.5520, -46.6528, '(11) 3100-0002', 'contato@petmedcentro.com.br',   1, 0, 1);
-    prc_inserir_clinica('AnimalSaude SP',    'R. Oscar Freire, 88',  'Sao Paulo', 'SP', -23.5630, -46.6680, '(11) 3100-0003', 'contato@animalsaudesp.com.br',  1, 1, 0);
-    prc_inserir_clinica('CliniPet Jardins',  'Al. Santos, 200',      'Sao Paulo', 'SP', -23.5645, -46.6551, '(11) 3100-0004', 'contato@clinipetjardins.com.br',1, 0, 0);
-    COMMIT;
+    prc_inserir_clinica('VetCare Prime',    '12345678000191', '(11) 3100-0001',
+        'contato@vetcareprime.com.br',    'Av. Paulista',    '1000', 'Bela Vista',      'Sao Paulo', 'SP', '01310100');
+    prc_inserir_clinica('PetMed Centro',    '23456789000102', '(11) 3100-0002',
+        'contato@petmed.com.br',          'R. Augusta',      '420',  'Consolacao',      'Sao Paulo', 'SP', '01304000');
+    prc_inserir_clinica('AnimalSaude SP',   '34567890000113', '(11) 3100-0003',
+        'contato@animalsaude.com.br',     'R. Oscar Freire', '88',   'Jardins',         'Sao Paulo', 'SP', '01426001');
+    prc_inserir_clinica('CliniPet Jardins', '45678901000124', '(11) 3100-0004',
+        'contato@clinipet.com.br',        'Al. Santos',      '200',  'Jardim Paulista', 'Sao Paulo', 'SP', '01419001');
 END;
 /
 
--- Horarios de funcionamento das clinicas
-INSERT INTO tb_horarios_clinica (clinica_id, dia_semana, abre_as, fecha_as, fechado)
-SELECT id, 1, '08:00', '18:00', 0 FROM tb_clinicas WHERE nome = 'VetCare Prime';
-INSERT INTO tb_horarios_clinica (clinica_id, dia_semana, abre_as, fecha_as, fechado)
-SELECT id, 2, '08:00', '18:00', 0 FROM tb_clinicas WHERE nome = 'VetCare Prime';
-INSERT INTO tb_horarios_clinica (clinica_id, dia_semana, abre_as, fecha_as, fechado)
-SELECT id, 3, '08:00', '18:00', 0 FROM tb_clinicas WHERE nome = 'VetCare Prime';
-INSERT INTO tb_horarios_clinica (clinica_id, dia_semana, abre_as, fecha_as, fechado)
-SELECT id, 4, '08:00', '18:00', 0 FROM tb_clinicas WHERE nome = 'VetCare Prime';
-INSERT INTO tb_horarios_clinica (clinica_id, dia_semana, abre_as, fecha_as, fechado)
-SELECT id, 5, '08:00', '18:00', 0 FROM tb_clinicas WHERE nome = 'VetCare Prime';
-INSERT INTO tb_horarios_clinica (clinica_id, dia_semana, abre_as, fecha_as, fechado)
-SELECT id, 6, '09:00', '13:00', 0 FROM tb_clinicas WHERE nome = 'VetCare Prime';
-INSERT INTO tb_horarios_clinica (clinica_id, dia_semana, abre_as, fecha_as, fechado)
-SELECT id, 0, NULL, NULL, 1 FROM tb_clinicas WHERE nome = 'VetCare Prime';
-COMMIT;
-
 -- ------------------------------------------------------------
--- VETERINARIOS (via procedure)
+-- VETERINARIOS
 -- ------------------------------------------------------------
 DECLARE
-    v_clinica1 NUMBER;
-    v_clinica2 NUMBER;
-    v_clinica3 NUMBER;
-    v_clinica4 NUMBER;
+    v_c1 VARCHAR2(36);
+    v_c2 VARCHAR2(36);
+    v_c3 VARCHAR2(36);
+    v_c4 VARCHAR2(36);
 BEGIN
-    SELECT id INTO v_clinica1 FROM tb_clinicas WHERE nome = 'VetCare Prime';
-    SELECT id INTO v_clinica2 FROM tb_clinicas WHERE nome = 'PetMed Centro';
-    SELECT id INTO v_clinica3 FROM tb_clinicas WHERE nome = 'AnimalSaude SP';
-    SELECT id INTO v_clinica4 FROM tb_clinicas WHERE nome = 'CliniPet Jardins';
+    SELECT id INTO v_c1 FROM clinica WHERE cnpj = '12345678000191';
+    SELECT id INTO v_c2 FROM clinica WHERE cnpj = '23456789000102';
+    SELECT id INTO v_c3 FROM clinica WHERE cnpj = '34567890000113';
+    SELECT id INTO v_c4 FROM clinica WHERE cnpj = '45678901000124';
 
-    prc_inserir_veterinario('Dra. Camila Ferreira', 'camila.ferreira@vetcare.com.br',  '(11) 99001-0001', 'CRMV-SP 14320', 'Clinica Geral',       'Especialista em pequenos animais com 10 anos de experiencia.', 10, v_clinica1);
-    prc_inserir_veterinario('Dr. Rafael Matos',     'rafael.matos@petmed.com.br',      '(11) 99001-0002', 'CRMV-SP 18741', 'Cardiologia',         'Cardiologista veterinario com foco em caes de grande porte.',  8,  v_clinica2);
-    prc_inserir_veterinario('Dr. Andre Costa',      'andre.costa@animalsaude.com.br',  '(11) 99001-0003', 'CRMV-SP 9812',  'Ortopedia',           'Ortopedista com experiencia em cirurgias de quadril.',         15, v_clinica3);
-    prc_inserir_veterinario('Dra. Livia Rocha',     'livia.rocha@clinipet.com.br',     '(11) 99001-0004', 'CRMV-SP 16540', 'Dermatologia',        'Especialista em dermatologia e alergias em animais.',          7,  v_clinica4);
-    prc_inserir_veterinario('Dr. Tomas Oliveira',   'tomas.oliveira@vetcare.com.br',   '(11) 99001-0005', 'CRMV-SP 11204', 'Clinica Geral',       'Atendimento domiciliar e urgencias veterinarias.',             12, v_clinica1);
-    prc_inserir_veterinario('Dra. Beatriz Lima',    'beatriz.lima@petmed.com.br',      '(11) 99001-0006', 'CRMV-SP 20333', 'Oncologia',           'Oncologista veterinaria com pesquisa em tratamentos modernos.',6,  v_clinica2);
-    prc_inserir_veterinario('Dr. Felipe Souza',     'felipe.souza@animalsaude.com.br', '(11) 99001-0007', 'CRMV-SP 25101', 'Nutricao Animal',     'Nutricionista veterinario e comportamentalista.',              3,  v_clinica3);
-    COMMIT;
-END;
-/
-
--- Agendas semanais dos veterinarios
-DECLARE
-    v_vet1    NUMBER;
-    v_vet2    NUMBER;
-    v_clinica1 NUMBER;
-    v_clinica2 NUMBER;
-BEGIN
-    SELECT v.id INTO v_vet1    FROM tb_veterinarios v WHERE v.crm = 'CRMV-SP 14320';
-    SELECT v.id INTO v_vet2    FROM tb_veterinarios v WHERE v.crm = 'CRMV-SP 18741';
-    SELECT c.id INTO v_clinica1 FROM tb_clinicas c WHERE nome = 'VetCare Prime';
-    SELECT c.id INTO v_clinica2 FROM tb_clinicas c WHERE nome = 'PetMed Centro';
-
-    -- Dra. Camila: seg a sex, 08:00-17:00, slots de 30min
-    INSERT INTO tb_agendas_vet (veterinario_id, clinica_id, dia_semana, hora_inicio, hora_fim, duracao_slot_min, max_slots)
-    VALUES (v_vet1, v_clinica1, 1, '08:00', '17:00', 30, 18);
-    INSERT INTO tb_agendas_vet (veterinario_id, clinica_id, dia_semana, hora_inicio, hora_fim, duracao_slot_min, max_slots)
-    VALUES (v_vet1, v_clinica1, 2, '08:00', '17:00', 30, 18);
-    INSERT INTO tb_agendas_vet (veterinario_id, clinica_id, dia_semana, hora_inicio, hora_fim, duracao_slot_min, max_slots)
-    VALUES (v_vet1, v_clinica1, 3, '08:00', '17:00', 30, 18);
-    INSERT INTO tb_agendas_vet (veterinario_id, clinica_id, dia_semana, hora_inicio, hora_fim, duracao_slot_min, max_slots)
-    VALUES (v_vet1, v_clinica1, 4, '08:00', '17:00', 30, 18);
-    INSERT INTO tb_agendas_vet (veterinario_id, clinica_id, dia_semana, hora_inicio, hora_fim, duracao_slot_min, max_slots)
-    VALUES (v_vet1, v_clinica1, 5, '08:00', '17:00', 30, 18);
-
-    -- Dr. Rafael: ter e qui, 09:00-16:00
-    INSERT INTO tb_agendas_vet (veterinario_id, clinica_id, dia_semana, hora_inicio, hora_fim, duracao_slot_min, max_slots)
-    VALUES (v_vet2, v_clinica2, 2, '09:00', '16:00', 30, 14);
-    INSERT INTO tb_agendas_vet (veterinario_id, clinica_id, dia_semana, hora_inicio, hora_fim, duracao_slot_min, max_slots)
-    VALUES (v_vet2, v_clinica2, 4, '09:00', '16:00', 30, 14);
-
-    COMMIT;
+    prc_inserir_veterinario('Dra. Camila Ferreira', 'CRMV-SP 14320', 'Clinica Geral',
+        'camila.ferreira@vetcare.com.br', '11122233344', '(11) 99001-0001', 'FEMININO',
+        TO_DATE('15/03/1985','DD/MM/YYYY'), v_c1,
+        'Av. Paulista', '1500', 'Bela Vista', 'Sao Paulo', 'SP', '01310200');
+    prc_inserir_veterinario('Dr. Rafael Matos', 'CRMV-SP 18741', 'Cardiologia',
+        'rafael.matos@petmed.com.br', '22233344455', '(11) 99001-0002', 'MASCULINO',
+        TO_DATE('22/07/1980','DD/MM/YYYY'), v_c2,
+        'R. Augusta', '500', 'Consolacao', 'Sao Paulo', 'SP', '01305000');
+    prc_inserir_veterinario('Dr. Andre Costa', 'CRMV-SP 9812', 'Ortopedia',
+        'andre.costa@animalsaude.com.br', '33344455566', '(11) 99001-0003', 'MASCULINO',
+        TO_DATE('05/11/1978','DD/MM/YYYY'), v_c3,
+        'R. Oscar Freire', '90', 'Jardins', 'Sao Paulo', 'SP', '01426002');
+    prc_inserir_veterinario('Dra. Livia Rocha', 'CRMV-SP 16540', 'Dermatologia',
+        'livia.rocha@clinipet.com.br', '44455566677', '(11) 99001-0004', 'FEMININO',
+        TO_DATE('18/09/1990','DD/MM/YYYY'), v_c4,
+        'Al. Santos', '300', 'Jardim Paulista', 'Sao Paulo', 'SP', '01419002');
+    prc_inserir_veterinario('Dr. Tomas Oliveira', 'CRMV-SP 11204', 'Clinica Geral',
+        'tomas.oliveira@vetcare.com.br', '55566677788', '(11) 99001-0005', 'MASCULINO',
+        TO_DATE('30/01/1982','DD/MM/YYYY'), v_c1,
+        'Av. Paulista', '1200', 'Bela Vista', 'Sao Paulo', 'SP', '01310300');
+    prc_inserir_veterinario('Dra. Beatriz Lima', 'CRMV-SP 20333', 'Oncologia',
+        'beatriz.lima@petmed.com.br', '66677788899', '(11) 99001-0006', 'FEMININO',
+        TO_DATE('14/06/1992','DD/MM/YYYY'), v_c2,
+        'R. Augusta', '600', 'Consolacao', 'Sao Paulo', 'SP', '01305100');
+    prc_inserir_veterinario('Dr. Felipe Souza', 'CRMV-SP 25101', 'Nutricao Animal',
+        'felipe.souza@animalsaude.com.br', '77788899900', '(11) 99001-0007', 'MASCULINO',
+        TO_DATE('09/04/1995','DD/MM/YYYY'), v_c3,
+        'R. Oscar Freire', '100', 'Jardins', 'Sao Paulo', 'SP', '01426003');
 END;
 /
 
 -- ------------------------------------------------------------
--- TUTOR: Lucas M. Santos
+-- TUTORES
 -- ------------------------------------------------------------
 BEGIN
-    prc_inserir_usuario('Lucas M. Santos', 'lucas.santos@email.com', '(11) 98000-0001',
-                        '$2b$12$seed_hash_lucas_santos', 'dono', 'pt');
-    COMMIT;
+    prc_inserir_tutor('Lucas M. Santos', 'lucas.santos@email.com', '11100011100',
+        '(11) 98000-0001', TO_DATE('10/05/1990','DD/MM/YYYY'), 'MASCULINO',
+        'R. Haddock Lobo', '595', 'Cerqueira Cesar', 'Sao Paulo', 'SP', '01414002');
+    prc_inserir_tutor('Maria Oliveira', 'maria.oliveira@email.com', '22200022200',
+        '(11) 97000-0002', TO_DATE('22/08/1985','DD/MM/YYYY'), 'FEMININO',
+        'R. Estados Unidos', '1000', 'Jardins', 'Sao Paulo', 'SP', '01427002');
 END;
 /
 
 -- ------------------------------------------------------------
--- ANIMAL: Bolinha
+-- ANIMAIS
 -- ------------------------------------------------------------
 DECLARE
-    v_dono_id NUMBER;
+    v_tutor1 VARCHAR2(36);
+    v_tutor2 VARCHAR2(36);
 BEGIN
-    SELECT id INTO v_dono_id FROM tb_usuarios WHERE email = 'lucas.santos@email.com';
+    SELECT id INTO v_tutor1 FROM tutor WHERE cpf = '11100011100';
+    SELECT id INTO v_tutor2 FROM tutor WHERE cpf = '22200022200';
 
-    prc_inserir_animal(
-        p_nome             => 'Bolinha',
-        p_especie          => 'cao',
-        p_raca             => 'Golden Retriever',
-        p_sexo             => 'macho',
-        p_data_nascimento  => TO_DATE('12/03/2022', 'DD/MM/YYYY'),
-        p_cor              => 'Dourado',
-        p_peso_kg          => 28.5,
-        p_codigo_microchip => '985112007432891',
-        p_url_foto         => 'https://storage.clyvovet.com.br/animais/bolinha.jpg',
-        p_modalidade       => 'domestico',
-        p_dono_id          => v_dono_id
-    );
+    prc_inserir_animal('Bolinha', 'CAO', 'Golden Retriever', 'GRANDE', 'Dourado',
+        'MACHO', TO_DATE('12/03/2022','DD/MM/YYYY'), 'Cachorro brincalhao e afetivo', v_tutor1);
+    prc_inserir_animal('Mimi', 'GATO', 'Siames', 'PEQUENO', 'Bege e marrom',
+        'FEMEA', TO_DATE('05/07/2021','DD/MM/YYYY'), 'Gata independente', v_tutor2);
+    prc_inserir_animal('Rex', 'CAO', 'Pastor Alemao', 'GRANDE', 'Preto e marrom',
+        'MACHO', TO_DATE('18/01/2020','DD/MM/YYYY'), 'Cao de guarda, obediente', v_tutor2);
+END;
+/
+
+-- ------------------------------------------------------------
+-- EVENTOS CLINICOS
+-- INSERT direto: datas historicas nao passam pela validacao
+-- de data futura da procedure prc_inserir_evento_clinico
+-- ------------------------------------------------------------
+DECLARE
+    v_vet1    VARCHAR2(36);
+    v_vet2    VARCHAR2(36);
+    v_vet3    VARCHAR2(36);
+    v_vet4    VARCHAR2(36);
+    v_vet5    VARCHAR2(36);
+    v_c1      VARCHAR2(36);
+    v_c2      VARCHAR2(36);
+    v_c3      VARCHAR2(36);
+    v_c4      VARCHAR2(36);
+    v_animal1 VARCHAR2(36);
+    v_animal2 VARCHAR2(36);
+    v_animal3 VARCHAR2(36);
+BEGIN
+    SELECT id INTO v_vet1    FROM veterinario WHERE crmv = 'CRMV-SP 14320';
+    SELECT id INTO v_vet2    FROM veterinario WHERE crmv = 'CRMV-SP 18741';
+    SELECT id INTO v_vet3    FROM veterinario WHERE crmv = 'CRMV-SP 9812';
+    SELECT id INTO v_vet4    FROM veterinario WHERE crmv = 'CRMV-SP 16540';
+    SELECT id INTO v_vet5    FROM veterinario WHERE crmv = 'CRMV-SP 11204';
+    SELECT id INTO v_c1      FROM clinica     WHERE cnpj = '12345678000191';
+    SELECT id INTO v_c2      FROM clinica     WHERE cnpj = '23456789000102';
+    SELECT id INTO v_c3      FROM clinica     WHERE cnpj = '34567890000113';
+    SELECT id INTO v_c4      FROM clinica     WHERE cnpj = '45678901000124';
+    SELECT id INTO v_animal1 FROM animal      WHERE nome = 'Bolinha';
+    SELECT id INTO v_animal2 FROM animal      WHERE nome = 'Mimi';
+    SELECT id INTO v_animal3 FROM animal      WHERE nome = 'Rex';
+
+    -- 6 eventos para Bolinha (garante LAG/LEAD com >= 5 linhas por animal)
+    INSERT INTO evento_clinico (data, hora, tipo_evento, descricao, veterinario_id, animal_id, clinica_id)
+    VALUES (TO_DATE('10/01/2024','DD/MM/YYYY'), '09:00', 'CONSULTA',
+            'Check-up anual de rotina', v_vet1, v_animal1, v_c1);
+    INSERT INTO evento_clinico (data, hora, tipo_evento, descricao, veterinario_id, animal_id, clinica_id)
+    VALUES (TO_DATE('15/02/2024','DD/MM/YYYY'), '10:00', 'VACINA',
+            'V10 - Vacina polivalente anual', v_vet1, v_animal1, v_c1);
+    INSERT INTO evento_clinico (data, hora, tipo_evento, descricao, veterinario_id, animal_id, clinica_id)
+    VALUES (TO_DATE('20/03/2024','DD/MM/YYYY'), '14:00', 'EXAME',
+            'Hemograma completo e bioquimica', v_vet5, v_animal1, v_c1);
+    INSERT INTO evento_clinico (data, hora, tipo_evento, descricao, veterinario_id, animal_id, clinica_id)
+    VALUES (TO_DATE('05/06/2024','DD/MM/YYYY'), '11:00', 'RETORNO',
+            'Retorno pos-exame, resultados normais', v_vet1, v_animal1, v_c1);
+    INSERT INTO evento_clinico (data, hora, tipo_evento, descricao, veterinario_id, animal_id, clinica_id)
+    VALUES (TO_DATE('10/09/2024','DD/MM/YYYY'), '09:30', 'VACINA',
+            'Antirabica anual', v_vet5, v_animal1, v_c1);
+    INSERT INTO evento_clinico (data, hora, tipo_evento, descricao, veterinario_id, animal_id, clinica_id)
+    VALUES (TRUNC(SYSDATE) + 7, '10:00', 'CONSULTA',
+            'Check-up e vermifugacao', v_vet1, v_animal1, v_c1);
+
+    -- 3 eventos para Mimi
+    INSERT INTO evento_clinico (data, hora, tipo_evento, descricao, veterinario_id, animal_id, clinica_id)
+    VALUES (TO_DATE('20/02/2024','DD/MM/YYYY'), '15:00', 'CONSULTA',
+            'Consulta de rotina', v_vet4, v_animal2, v_c4);
+    INSERT INTO evento_clinico (data, hora, tipo_evento, descricao, veterinario_id, animal_id, clinica_id)
+    VALUES (TO_DATE('15/04/2024','DD/MM/YYYY'), '16:00', 'VACINA',
+            'Vacina triplice felina', v_vet4, v_animal2, v_c4);
+    INSERT INTO evento_clinico (data, hora, tipo_evento, descricao, veterinario_id, animal_id, clinica_id)
+    VALUES (TRUNC(SYSDATE) + 14, '14:00', 'EXAME',
+            'Exame de urina e sangue', v_vet2, v_animal2, v_c2);
+
+    -- 2 eventos para Rex
+    INSERT INTO evento_clinico (data, hora, tipo_evento, descricao, veterinario_id, animal_id, clinica_id)
+    VALUES (TO_DATE('08/03/2024','DD/MM/YYYY'), '08:00', 'CIRURGIA',
+            'Cirurgia de castracao', v_vet3, v_animal3, v_c3);
+    INSERT INTO evento_clinico (data, hora, tipo_evento, descricao, veterinario_id, animal_id, clinica_id)
+    VALUES (TO_DATE('25/03/2024','DD/MM/YYYY'), '09:00', 'RETORNO',
+            'Retorno pos-cirurgico', v_vet3, v_animal3, v_c3);
+
     COMMIT;
 END;
 /
 
 -- ------------------------------------------------------------
--- EVENTOS DE SAUDE DO BOLINHA
+-- PAGAMENTOS
 -- ------------------------------------------------------------
 DECLARE
-    v_animal_id NUMBER;
-    v_dono_id   NUMBER;
+    v_ev  VARCHAR2(36);
+    v_a1  VARCHAR2(36);
+    v_a2  VARCHAR2(36);
+    v_a3  VARCHAR2(36);
 BEGIN
-    SELECT id INTO v_animal_id FROM tb_animais  WHERE codigo_microchip = '985112007432891';
-    SELECT id INTO v_dono_id   FROM tb_usuarios WHERE email = 'lucas.santos@email.com';
+    SELECT id INTO v_a1 FROM animal WHERE nome = 'Bolinha';
+    SELECT id INTO v_a2 FROM animal WHERE nome = 'Mimi';
+    SELECT id INTO v_a3 FROM animal WHERE nome = 'Rex';
 
-    prc_inserir_evento_saude(v_animal_id, 'vacina',       'V10 - Polivalente',    'Vacina anual obrigatoria',        TO_DATE('15/05/2025','DD/MM/YYYY'), NULL,                               'pendente',  v_dono_id);
-    prc_inserir_evento_saude(v_animal_id, 'vacina',       'Antirabica',           'Vacina antirabica anual',         TO_DATE('20/06/2025','DD/MM/YYYY'), NULL,                               'pendente',  v_dono_id);
-    prc_inserir_evento_saude(v_animal_id, 'vermifugacao', 'Vermifugo trimestral', 'Drontal Plus para caes',          TO_DATE('10/05/2025','DD/MM/YYYY'), NULL,                               'urgente',   v_dono_id);
-    prc_inserir_evento_saude(v_animal_id, 'exame',        'Hemograma completo',   'Check-up anual de rotina',        TO_DATE('30/05/2025','DD/MM/YYYY'), NULL,                               'agendado',  v_dono_id);
-    prc_inserir_evento_saude(v_animal_id, 'medicamento',  'NexGard - antipulgas', 'Comprimido mensal antipulgas',    TO_DATE('01/06/2025','DD/MM/YYYY'), NULL,                               'pendente',  v_dono_id);
-    prc_inserir_evento_saude(v_animal_id, 'vacina',       'V10 - Polivalente',    'Vacina do ano anterior',          TO_DATE('15/05/2024','DD/MM/YYYY'), TO_DATE('15/05/2024','DD/MM/YYYY'), 'concluido', v_dono_id);
-    COMMIT;
-END;
-/
+    SELECT id INTO v_ev FROM evento_clinico WHERE animal_id = v_a1 AND data = TO_DATE('10/01/2024','DD/MM/YYYY');
+    prc_inserir_pagamento('PIX',     150.00, 'PAGO',      TO_DATE('10/01/2024','DD/MM/YYYY'), 'Consulta de rotina',     NULL, v_ev);
 
--- ------------------------------------------------------------
--- SCORE DE SAUDE INICIAL DO BOLINHA
--- ------------------------------------------------------------
-DECLARE
-    v_animal_id NUMBER;
-BEGIN
-    SELECT id INTO v_animal_id FROM tb_animais WHERE codigo_microchip = '985112007432891';
+    SELECT id INTO v_ev FROM evento_clinico WHERE animal_id = v_a1 AND data = TO_DATE('15/02/2024','DD/MM/YYYY');
+    prc_inserir_pagamento('CARTAO',  80.00,  'PAGO',      TO_DATE('15/02/2024','DD/MM/YYYY'), 'Vacina V10',             NULL, v_ev);
 
-    INSERT INTO tb_scores_saude (animal_id, pontuacao, pontuacao_nutricao, pontuacao_atividade, pontuacao_vacina)
-    VALUES (v_animal_id, 72.5, 80.0, 85.0, 55.0);
-    COMMIT;
-END;
-/
+    SELECT id INTO v_ev FROM evento_clinico WHERE animal_id = v_a1 AND data = TO_DATE('20/03/2024','DD/MM/YYYY');
+    prc_inserir_pagamento('DINHEIRO',200.00, 'PAGO',      TO_DATE('20/03/2024','DD/MM/YYYY'), 'Hemograma e bioquimica', NULL, v_ev);
 
--- ------------------------------------------------------------
--- VACINAS NO CARTAO DIGITAL DO BOLINHA
--- ------------------------------------------------------------
-DECLARE
-    v_carteirinha_id NUMBER;
-    v_animal_id      NUMBER;
-BEGIN
-    SELECT id INTO v_animal_id      FROM tb_animais      WHERE codigo_microchip = '985112007432891';
-    SELECT id INTO v_carteirinha_id FROM tb_carteirinhas WHERE animal_id = v_animal_id;
+    SELECT id INTO v_ev FROM evento_clinico WHERE animal_id = v_a1 AND data = TO_DATE('05/06/2024','DD/MM/YYYY');
+    prc_inserir_pagamento('PIX',     120.00, 'PENDENTE',  NULL,                               'Retorno Bolinha',        NULL, v_ev);
 
-    INSERT INTO tb_vacinas_carteirinha (carteirinha_id, nome_vacina, situacao, aplicada_em, valida_ate)
-    VALUES (v_carteirinha_id, 'V10 - Polivalente', 'ok',      TO_DATE('15/05/2024','DD/MM/YYYY'), TO_DATE('15/05/2025','DD/MM/YYYY'));
-    INSERT INTO tb_vacinas_carteirinha (carteirinha_id, nome_vacina, situacao, aplicada_em, valida_ate)
-    VALUES (v_carteirinha_id, 'Antirabica',         'vencida',  TO_DATE('20/06/2023','DD/MM/YYYY'), TO_DATE('20/06/2024','DD/MM/YYYY'));
-    INSERT INTO tb_vacinas_carteirinha (carteirinha_id, nome_vacina, situacao, aplicada_em, valida_ate)
-    VALUES (v_carteirinha_id, 'Giardíase',           'ok',       TO_DATE('10/01/2024','DD/MM/YYYY'), TO_DATE('10/01/2025','DD/MM/YYYY'));
+    SELECT id INTO v_ev FROM evento_clinico WHERE animal_id = v_a2 AND data = TO_DATE('20/02/2024','DD/MM/YYYY');
+    prc_inserir_pagamento('CARTAO',  100.00, 'PAGO',      TO_DATE('20/02/2024','DD/MM/YYYY'), 'Consulta Mimi',          NULL, v_ev);
 
-    COMMIT;
-END;
-/
+    SELECT id INTO v_ev FROM evento_clinico WHERE animal_id = v_a2 AND data = TO_DATE('15/04/2024','DD/MM/YYYY');
+    prc_inserir_pagamento('PIX',     90.00,  'PENDENTE',  NULL,                               'Vacina felina Mimi',     NULL, v_ev);
 
--- ------------------------------------------------------------
--- CONSULTA DO BOLINHA
--- ------------------------------------------------------------
-DECLARE
-    v_animal_id  NUMBER;
-    v_dono_id    NUMBER;
-    v_vet_id     NUMBER;
-    v_clinica_id NUMBER;
-BEGIN
-    SELECT id INTO v_animal_id  FROM tb_animais      WHERE codigo_microchip = '985112007432891';
-    SELECT id INTO v_dono_id    FROM tb_usuarios      WHERE email = 'lucas.santos@email.com';
-    SELECT id INTO v_vet_id     FROM tb_veterinarios  WHERE crm   = 'CRMV-SP 14320';
-    SELECT id INTO v_clinica_id FROM tb_clinicas       WHERE nome  = 'VetCare Prime';
+    SELECT id INTO v_ev FROM evento_clinico WHERE animal_id = v_a3 AND data = TO_DATE('08/03/2024','DD/MM/YYYY');
+    prc_inserir_pagamento('BOLETO',  800.00, 'PAGO',      TO_DATE('08/03/2024','DD/MM/YYYY'), 'Cirurgia castracao Rex', NULL, v_ev);
 
-    prc_inserir_consulta(
-        p_animal_id        => v_animal_id,
-        p_dono_id          => v_dono_id,
-        p_veterinario_id   => v_vet_id,
-        p_clinica_id       => v_clinica_id,
-        p_especialidade    => 'Clinica Geral',
-        p_data             => TRUNC(SYSDATE) + 7,
-        p_hora             => '10:00',
-        p_duracao_min      => 30,
-        p_tipo_atendimento => 'presencial',
-        p_observacoes      => 'Check-up anual e vermifugacao do Bolinha'
-    );
-    COMMIT;
+    SELECT id INTO v_ev FROM evento_clinico WHERE animal_id = v_a3 AND data = TO_DATE('25/03/2024','DD/MM/YYYY');
+    prc_inserir_pagamento('PIX',     150.00, 'CANCELADO', NULL,                               'Retorno cancelado',      NULL, v_ev);
 END;
 /
