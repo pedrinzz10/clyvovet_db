@@ -104,6 +104,11 @@ erDiagram
         VARCHAR2 sexo
         DATE data_nascimento
         VARCHAR2 observacao
+        NUMBER peso
+        NUMBER castrado
+        VARCHAR2 microchip
+        VARCHAR2 foto_url
+        VARCHAR2 qr_code
         VARCHAR2 tutor_id FK
         TIMESTAMP criado_em
     }
@@ -167,12 +172,66 @@ erDiagram
         TIMESTAMP criado_em
     }
 
-    tutor         ||--o{ animal          : "possui"
-    animal        ||--o{ evento_clinico  : "participa"
-    clinica       ||--o{ veterinario     : "emprega"
-    clinica       ||--o{ evento_clinico  : "sedia"
-    veterinario   ||--o{ evento_clinico  : "atende"
-    evento_clinico ||--o| pagamento      : "gera"
+    produto {
+        VARCHAR2 id PK
+        VARCHAR2 nome
+        VARCHAR2 descricao
+        VARCHAR2 categoria
+        NUMBER preco
+        VARCHAR2 especie_indicada
+        NUMBER ativo
+        TIMESTAMP criado_em
+    }
+
+    sugestao_produto {
+        VARCHAR2 id PK
+        VARCHAR2 animal_id FK
+        VARCHAR2 produto_id FK
+        VARCHAR2 justificativa
+        DATE data_sugestao
+        NUMBER ativa
+        TIMESTAMP criado_em
+    }
+
+    lembrete {
+        VARCHAR2 id PK
+        VARCHAR2 animal_id FK
+        VARCHAR2 titulo
+        VARCHAR2 descricao
+        VARCHAR2 tipo
+        TIMESTAMP data_hora
+        NUMBER recorrente
+        VARCHAR2 status
+        TIMESTAMP criado_em
+    }
+
+    evento_pet {
+        VARCHAR2 id PK
+        VARCHAR2 titulo
+        VARCHAR2 descricao
+        VARCHAR2 tipo
+        VARCHAR2 logradouro
+        VARCHAR2 cidade
+        VARCHAR2 estado
+        DATE data_inicio
+        DATE data_fim
+        VARCHAR2 especie_alvo
+        VARCHAR2 organizador
+        NUMBER gratuito
+        VARCHAR2 link_inscricao
+        NUMBER ativo
+        TIMESTAMP criado_em
+    }
+
+    tutor          ||--o{ animal           : "possui"
+    animal         ||--o{ evento_clinico   : "participa"
+    clinica        ||--o{ veterinario      : "emprega"
+    clinica        ||--o{ evento_clinico   : "sedia"
+    veterinario    ||--o{ evento_clinico   : "atende"
+    evento_clinico ||--o| pagamento        : "gera"
+    animal         ||--o{ sugestao_produto : "recebe"
+    produto        ||--o{ sugestao_produto : "aparece em"
+    animal         ||--o{ lembrete         : "tem"
 ```
 
 > Para visualizar interativamente: cole o conteúdo de `MER_DIAGRAMA.mmd` em [mermaid.live](https://mermaid.live), ou abra `MER_DIAGRAMA.html` no navegador.
@@ -181,7 +240,7 @@ erDiagram
 
 ## Arquitetura do Banco
 
-O banco está organizado em 6 tabelas de negócio + 1 tabela de sistema:
+O banco está organizado em 10 tabelas de negócio + 1 tabela de sistema:
 
 ```
 TUTORES ────────────────────────────────────────────────────
@@ -190,7 +249,8 @@ TUTORES ────────────────────────
 
 ANIMAIS ────────────────────────────────────────────────────
   animal              Perfil completo do animal vinculado a
-                      um tutor
+                      um tutor (inclui peso, castrado,
+                      microchip, foto e QR Code)
 
 CLÍNICAS ───────────────────────────────────────────────────
   clinica             Clínicas parceiras (endereço inline)
@@ -205,6 +265,19 @@ EVENTOS CLÍNICOS ────────────────────�
 
 PAGAMENTOS ─────────────────────────────────────────────────
   pagamento           Pagamento de um evento clínico (1-para-1)
+
+CATÁLOGO ───────────────────────────────────────────────────
+  produto             Catálogo de produtos e serviços
+                      recomendáveis por espécie
+  sugestao_produto    Recomendação de produto para um animal
+
+LEMBRETES ──────────────────────────────────────────────────
+  lembrete            Alertas personalizados por animal
+                      (vacina, remédio, consulta, higiene)
+
+EVENTOS PÚBLICOS ───────────────────────────────────────────
+  evento_pet          Campanhas de vacinação, feiras e eventos
+                      externos abertos ao público
 
 SISTEMA ────────────────────────────────────────────────────
   tb_log_erros        Log de erros das procedures
@@ -239,7 +312,12 @@ Perfil do animal vinculado a um tutor.
 | nome | VARCHAR2(80) | Nome do animal |
 | especie | VARCHAR2(20) | CAO / GATO / AVE / REPTIL / ROEDOR / OUTRO |
 | porte | VARCHAR2(10) | PEQUENO / MEDIO / GRANDE |
-| sexo | VARCHAR2(10) | MACHO / FEMEA |
+| sexo | VARCHAR2(10) | MACHO / FEMEA / DESCONHECIDO |
+| peso | NUMBER(5,2) | Peso em kg (opcional) |
+| castrado | NUMBER(1) | 0 = não / 1 = sim (DEFAULT 0) |
+| microchip | VARCHAR2(50) | Código do microchip (UNIQUE) |
+| foto_url | VARCHAR2(500) | URL da foto do animal |
+| qr_code | VARCHAR2(100) | Código QR único do animal (UNIQUE) |
 | tutor_id | VARCHAR2(36) | FK para tutor |
 
 ---
@@ -296,6 +374,68 @@ Pagamento referente a um evento clínico. Relação 1-para-1 com `evento_clinico
 | status_pagamento | VARCHAR2(20) | PENDENTE / PAGO / CANCELADO / ESTORNADO |
 | data_pagamento | DATE | Data de liquidação (NULL se pendente) |
 | evento_clinico_id | VARCHAR2(36) | FK para evento_clinico (UNIQUE) |
+
+---
+
+### produto
+Catálogo de produtos e serviços recomendáveis. Cada produto pode ser filtrado por espécie-alvo.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | VARCHAR2(36) | PK — UUID |
+| nome | VARCHAR2(200) | Nome do produto ou serviço |
+| categoria | VARCHAR2(20) | RACAO / MEDICAMENTO / ACESSORIO / SERVICO / OUTRO |
+| preco | NUMBER(10,2) | Preço de referência (opcional) |
+| especie_indicada | VARCHAR2(20) | CAO / GATO / AVE / REPTIL / ROEDOR / TODOS / OUTRO |
+| ativo | NUMBER(1) | 0 = inativo / 1 = ativo (DEFAULT 1) |
+
+---
+
+### sugestao_produto
+Recomendação de um produto específico para um animal. Um animal pode receber várias sugestões.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | VARCHAR2(36) | PK — UUID |
+| animal_id | VARCHAR2(36) | FK para animal |
+| produto_id | VARCHAR2(36) | FK para produto |
+| justificativa | VARCHAR2(500) | Motivo da recomendação |
+| data_sugestao | DATE | Data da sugestão (DEFAULT SYSDATE) |
+| ativa | NUMBER(1) | 0 = inativa / 1 = ativa (DEFAULT 1) |
+
+---
+
+### lembrete
+Alertas personalizados vinculados a um animal. Suporta lembretes únicos e recorrentes.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | VARCHAR2(36) | PK — UUID |
+| animal_id | VARCHAR2(36) | FK para animal |
+| titulo | VARCHAR2(200) | Título do lembrete |
+| tipo | VARCHAR2(20) | VACINA / REMEDIO / CONSULTA / HIGIENE / OUTRO |
+| data_hora | TIMESTAMP | Data e hora do disparo |
+| recorrente | NUMBER(1) | 0 = único / 1 = recorrente (DEFAULT 0) |
+| status | VARCHAR2(20) | PENDENTE / ENVIADO / CANCELADO (DEFAULT PENDENTE) |
+
+---
+
+### evento_pet
+Eventos públicos externos (campanhas de vacinação, feiras pet, workshops). Não vinculado a nenhum animal específico.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | VARCHAR2(36) | PK — UUID |
+| titulo | VARCHAR2(200) | Título do evento |
+| tipo | VARCHAR2(20) | VACINACAO / FEIRA / CASTRACAO / WORKSHOP / OUTRO |
+| logradouro … cep | VARCHAR2 | Endereço do evento |
+| data_inicio | DATE | Data de início |
+| data_fim | DATE | Data de encerramento (opcional) |
+| especie_alvo | VARCHAR2(20) | Espécie-alvo (DEFAULT TODOS) |
+| organizador | VARCHAR2(200) | Responsável pelo evento |
+| gratuito | NUMBER(1) | 0 = pago / 1 = gratuito (DEFAULT 1) |
+| link_inscricao | VARCHAR2(500) | URL de inscrição (opcional) |
+| ativo | NUMBER(1) | 0 = inativo / 1 = ativo (DEFAULT 1) |
 
 ---
 
@@ -414,6 +554,34 @@ Cursor percorre pagamentos com JOIN de 4 tabelas. `IF/ELSIF/ELSE` classifica o s
 - **Bolinha**: 6 eventos (CONSULTA, VACINA, EXAME, RETORNO, VACINA, CONSULTA futura) — 4 pagamentos (PIX/CARTAO/DINHEIRO/PIX, status PAGO/PAGO/PAGO/PENDENTE)
 - **Mimi**: 3 eventos (CONSULTA, VACINA, EXAME futuro) — 2 pagamentos (CARTAO PAGO, PIX PENDENTE)
 - **Rex**: 2 eventos (CIRURGIA, RETORNO) — 2 pagamentos (BOLETO PAGO, PIX CANCELADO)
+
+### Produtos
+| Nome | Categoria | Espécie Indicada | Preço |
+|---|---|---|---|
+| Royal Canin Medium Adult | RACAO | CAO | R$ 189,90 |
+| NexGard Spectra M | MEDICAMENTO | CAO | R$ 79,50 |
+| Coleira antipulgas Seresto Gato | ACESSORIO | GATO | R$ 149,00 |
+| Banho e Tosa Completo | SERVICO | TODOS | R$ 95,00 |
+
+### Sugestões de Produto
+| Animal | Produto | Justificativa |
+|---|---|---|
+| Bolinha | Royal Canin Medium Adult | Ração para Golden Retriever adulto de grande porte |
+| Bolinha | NexGard Spectra M | Prevenção mensal de pulgas e carrapatos |
+| Mimi | Coleira antipulgas Seresto Gato | Proteção prolongada para gatos de interior |
+
+### Lembretes
+| Animal | Tipo | Título | Data/Hora |
+|---|---|---|---|
+| Bolinha | VACINA | Vacina V10 - Bolinha | 15/02/2025 09:00 |
+| Mimi | REMEDIO | Remedio antipulgas - Mimi | 01/06/2025 08:00 |
+| Rex | CONSULTA | Consulta de retorno - Rex | 10/06/2025 10:00 |
+
+### Eventos Pet
+| Título | Tipo | Cidade | Período | Gratuito |
+|---|---|---|---|---|
+| Campanha de Vacinação Antirrábica 2025 | VACINACAO | São Paulo | 10/06 a 12/06/2025 | Sim |
+| Feira Pet Jardins 2025 | FEIRA | São Paulo | 21/06 a 22/06/2025 | Não |
 
 ---
 

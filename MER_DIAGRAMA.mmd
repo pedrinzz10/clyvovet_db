@@ -1,9 +1,9 @@
 erDiagram
 
-    tb_log_erros {
+    log_erros {
         NUMBER id PK
         VARCHAR2 nome_procedure
-        VARCHAR2 nome_usuario
+        VARCHAR2 usuario
         TIMESTAMP data_erro
         NUMBER codigo_erro
         VARCHAR2 mensagem_erro
@@ -16,8 +16,8 @@ erDiagram
         VARCHAR2 cpf
         VARCHAR2 telefone
         DATE data_nascimento
-        VARCHAR2 sexo
-        VARCHAR2 logradouro
+        VARCHAR2 genero
+        VARCHAR2 rua
         VARCHAR2 numero
         VARCHAR2 bairro
         VARCHAR2 cidade
@@ -33,9 +33,14 @@ erDiagram
         VARCHAR2 raca
         VARCHAR2 porte
         VARCHAR2 cor
-        VARCHAR2 sexo
+        VARCHAR2 genero
         DATE data_nascimento
-        VARCHAR2 observacao
+        VARCHAR2 observacoes
+        NUMBER peso
+        NUMBER castrado
+        VARCHAR2 microchip
+        VARCHAR2 foto_url
+        VARCHAR2 qr_code
         VARCHAR2 tutor_id FK
         TIMESTAMP criado_em
     }
@@ -46,7 +51,7 @@ erDiagram
         VARCHAR2 cnpj
         VARCHAR2 telefone
         VARCHAR2 email
-        VARCHAR2 logradouro
+        VARCHAR2 rua
         VARCHAR2 numero
         VARCHAR2 bairro
         VARCHAR2 cidade
@@ -63,10 +68,10 @@ erDiagram
         VARCHAR2 email
         VARCHAR2 cpf
         VARCHAR2 telefone
-        VARCHAR2 sexo
+        VARCHAR2 genero
         DATE data_nascimento
         VARCHAR2 clinica_id FK
-        VARCHAR2 logradouro
+        VARCHAR2 rua
         VARCHAR2 numero
         VARCHAR2 bairro
         VARCHAR2 cidade
@@ -77,8 +82,8 @@ erDiagram
 
     evento_clinico {
         VARCHAR2 id PK
-        DATE data
-        VARCHAR2 hora
+        DATE data_evento
+        VARCHAR2 hora_evento
         VARCHAR2 tipo_evento
         VARCHAR2 descricao
         VARCHAR2 veterinario_id FK
@@ -89,19 +94,73 @@ erDiagram
 
     pagamento {
         VARCHAR2 id PK
-        VARCHAR2 forma_pagamento
+        VARCHAR2 metodo_pagamento
         NUMBER valor
         VARCHAR2 status_pagamento
         DATE data_pagamento
         VARCHAR2 descricao
-        VARCHAR2 observacao
-        VARCHAR2 evento_clinico_id FK
+        VARCHAR2 notas
+        VARCHAR2 evento_id FK
         TIMESTAMP criado_em
     }
 
-    tutor         ||--o{ animal          : "possui"
-    animal        ||--o{ evento_clinico  : "participa"
-    clinica       ||--o{ veterinario     : "emprega"
-    clinica       ||--o{ evento_clinico  : "sedia"
-    veterinario   ||--o{ evento_clinico  : "atende"
-    evento_clinico ||--o| pagamento      : "gera"
+    produto {
+        VARCHAR2 id PK
+        VARCHAR2 nome
+        VARCHAR2 descricao
+        VARCHAR2 categoria
+        NUMBER preco
+        VARCHAR2 especie_indicada
+        NUMBER ativo
+        TIMESTAMP criado_em
+    }
+
+    sugestao_produto {
+        VARCHAR2 id PK
+        VARCHAR2 animal_id FK
+        VARCHAR2 produto_id FK
+        VARCHAR2 justificativa
+        DATE data_sugestao
+        NUMBER ativo
+        TIMESTAMP criado_em
+    }
+
+    lembrete {
+        VARCHAR2 id PK
+        VARCHAR2 animal_id FK
+        VARCHAR2 titulo
+        VARCHAR2 descricao
+        VARCHAR2 tipo
+        TIMESTAMP agendado_em
+        NUMBER recorrente
+        VARCHAR2 status
+        TIMESTAMP criado_em
+    }
+
+    evento_pet {
+        VARCHAR2 id PK
+        VARCHAR2 titulo
+        VARCHAR2 descricao
+        VARCHAR2 tipo
+        VARCHAR2 rua
+        VARCHAR2 cidade
+        VARCHAR2 estado
+        DATE data_inicio
+        DATE data_fim
+        VARCHAR2 especie_alvo
+        VARCHAR2 organizador
+        NUMBER gratuito
+        VARCHAR2 link_inscricao
+        NUMBER ativo
+        TIMESTAMP criado_em
+    }
+
+    tutor           ||--o{ animal            : "possui"
+    animal          ||--o{ evento_clinico    : "participa"
+    clinica         ||--o{ veterinario       : "emprega"
+    clinica         ||--o{ evento_clinico    : "sedia"
+    veterinario     ||--o{ evento_clinico    : "realiza"
+    evento_clinico  ||--o| pagamento         : "gera"
+    animal          ||--o{ sugestao_produto  : "recebe"
+    produto         ||--o{ sugestao_produto  : "aparece em"
+    animal          ||--o{ lembrete          : "possui"
